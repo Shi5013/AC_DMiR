@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,g
 
 parser.add_argument('-lr','--learning_rate',
                     dest='learning_rate',
-                    default=1e-5,
+                    default=1e-4,
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',

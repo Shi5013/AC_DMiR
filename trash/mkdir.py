@@ -1,6 +1,6 @@
 import os
 
-base_folder = './data2/'
+base_folder = '/media/user_gou/Elements/Shi/Reg_Seg/data_20_patients'
 
 for i in range(20):
     patient_folder = os.path.join(base_folder, f'patient{i:02d}')

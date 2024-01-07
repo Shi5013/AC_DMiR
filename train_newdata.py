@@ -21,7 +21,7 @@ parser.add_argument('-lr','--learning_rate',
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
-                    default=0,
+                    default=1,
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
@@ -37,7 +37,7 @@ parser.add_argument('-fl','--file_list',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label/sec_dataset_20patients_data.txt',
+                    default='./file_label/sec_dataset_20patients_label.txt',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',

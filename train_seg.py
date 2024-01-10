@@ -8,12 +8,13 @@ from Loss import *
 from dataset import *
 from network_seg import *
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,gpuid...')
 
 parser.add_argument('-lr','--learning_rate',
                     dest='learning_rate',
-                    default=1e-3,
+                    default=2e-5,
                     help='learning rate,default=1e-3')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
@@ -21,20 +22,24 @@ parser.add_argument('-g','--gpu_id',
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=300,
+                    default=30,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./models_seg/',
+                    default='./models_save/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_list.txt',
+                    default='./file_label/new_list.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label_list.txt',
+                    default='./file_label/new_list_label.txt',
                     help='label list,txt file')
+parser.add_argument('-t','--tensorboard',
+                    dest='tensorboard',
+                    default='logs',
+                    help='tensorboard file')
 
 
 args = parser.parse_args()
@@ -42,7 +47,7 @@ args = parser.parse_args()
 device = torch.device("cuda:{}".format(args.gpu_id))
 
 save_prefix = 'model_'
-save_interval = 10  # 每隔10个 epoch 保存一次模型
+save_interval = 3  # 每隔10个 epoch 保存一次模型
 
 model = Seg_net() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
@@ -54,7 +59,8 @@ start_time = time.time()
 dataset = fixed_moving_seg(args.file_list,args.label_list)
 data_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=0)
 
-
+writer = SummaryWriter(args.tensorboard)
+count = 0
 for epoch in range(args.epochs):
     # 设置模型为训练模式
     losss = 0
@@ -80,15 +86,14 @@ for epoch in range(args.epochs):
         mask = output[0]# sigmoid
         mask_save = (mask >= 0.5).float()# 前面输出sigmoid，在这里进行二值化
 
-
-        # attention:这里应该加一个形变场的smooth损失
-
         # loss-dice_loss
         # loss_mask = F.l1_loss(mask,seg_label)
-        criterion = nn.BCELoss()
-        loss_mask = criterion(mask,seg_label)# 这是一个sigmoid和二值求这个？
-        # 不行，只要是两个二值化的求就回不去
-        # loss_mask = dice_loss(mask_save,seg_label)
+        #criterion = nn.BCELoss()
+        #loss_mask = criterion(mask,seg_label)# 这是一个sigmoid和二值求这个？
+        #不行，只要是两个二值化的求就回不去
+        loss_mask = dice_loss(mask,seg_label)
+        writer.add_scalar('loss_mask',loss_mask.item(),count)
+        count = count + 1
         # print(loss_mask.item())
 
         losss = losss + loss_mask.item()
@@ -116,3 +121,4 @@ for epoch in range(args.epochs):
 
     print(f"Epoch {epoch + 1}/{args.epochs}, Loss: {losss},Time:{epoch_time}")
     start_time = end_time
+writer.close()

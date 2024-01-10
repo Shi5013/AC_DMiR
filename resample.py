@@ -41,9 +41,13 @@ def resample_all_files(input_folder, output_folder, target_shape):
         resample_nii(input_path, output_path, target_shape)
 
 # 定义输入文件夹和输出文件夹路径
-input_folder = './Data/Liver_4DCT_label/'
-output_folder = './Data/Resampled_Liver_4DCT_label/'
-target_shape = (256, 256, 96)
+for i in range(20):
+    if i!=18:
+        input_folder = '/media/user_gou/Elements/Shi/4D_Lung_nii_mask_and_data_20240109/{}_HM10395/lung_label'.format(100+i)
+        output_folder = '/media/user_gou/Elements/Shi/Reg_Seg/new_data/{}_HM10395/lung_label'.format(100+i)
+    else:
+        continue
+    
+    target_shape = (256, 256, 96)
 
-# 执行重采样操作
-resample_all_files(input_folder, output_folder, target_shape)
+    resample_all_files(input_folder, output_folder, target_shape)

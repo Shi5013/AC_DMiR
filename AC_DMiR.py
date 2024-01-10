@@ -17,7 +17,7 @@ class AC_DMiR(nn.Module):
         super(AC_DMiR, self).__init__()
         # Weakly-Supervised Registration Learning
         self.Init_Reg = Reg_network() # return Deformable_Field,out_for_bottleneck
-        self.spt = SpatialTransformer((48,256,256)) # return moved
+        self.spt = SpatialTransformer((96,256,256)) # return moved
         # self.spt = SpatialTransformer((96,256,256)) # return moved
         
         # Supervised egmentation Learning

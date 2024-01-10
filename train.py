@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,g
 
 parser.add_argument('-lr','--learning_rate',
                     dest='learning_rate',
-                    default=1e-4,
+                    default=2e-4,
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
@@ -33,11 +33,11 @@ parser.add_argument('-s','--save_folder',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/nonorm_file_list.txt',
+                    default='./file_label/new_list.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label/nonorm_label_list.txt',
+                    default='./file_label/new_list_label.txt',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',

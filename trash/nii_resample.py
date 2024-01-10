@@ -26,11 +26,14 @@ def resample_nifti(file_path, new_shape):
     except Exception as e:
         print(f"Error: {e}")
 
-if __name__ == "__main__":
-    # 指定包含NIfTI文件的文件夹路径
-    for i in range(20):
-        folder_path = '/media/user_gou/Elements/Shi/Reg_Seg/data_20_patients/patient{}/mask'.format(i)
-        nifti_files = [f for f in os.listdir(folder_path) if f.endswith('.nii.gz')]
-        for nifti_file in nifti_files:
-            nifti_file_path = os.path.join(folder_path, nifti_file)
-            resample_nifti(nifti_file_path, new_shape=(256, 256, 48))
+# if __name__ == "__main__":
+#     # 指定包含NIfTI文件的文件夹路径
+#     for i in range(20):
+#         folder_path = '/media/user_gou/Elements/Shi/Reg_Seg/data_20_patients/patient{}/mask'.format(i)
+#         nifti_files = [f for f in os.listdir(folder_path) if f.endswith('.nii.gz')]
+#         for nifti_file in nifti_files:
+#             nifti_file_path = os.path.join(folder_path, nifti_file)
+#             resample_nifti(nifti_file_path, new_shape=(256, 256, 48))
+
+nifti_file_path = '/media/user_gou/Elements/Shi/10_CCE_4823203_Ex20%_label.nii.gz'
+resample_nifti(nifti_file_path, new_shape=(256, 256, 96))

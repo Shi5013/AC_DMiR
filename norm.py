@@ -39,11 +39,13 @@ def normalize_all_files(input_folder, output_folder):
         output_path = os.path.join(output_folder, f"norm_{nii_file}")
         normalize_nii(input_path, output_path)
 
-for i in range(13):
+for i in range(20):
+    if i != 18:
+        # 定义输入文件夹和输出文件夹路径
+        input_folder = '/media/user_gou/Elements/Shi/Reg_Seg/new_data/{}_HM10395/img'.format(100+i)
+        output_folder = '/media/user_gou/Elements/Shi/Reg_Seg/new_data/{}_HM10395/norm_img'.format(100+i)
 
-    # 定义输入文件夹和输出文件夹路径
-    input_folder = './processed_data/nii_resample/niidata{}'.format(i+1)
-    output_folder = './processed_data/norm_nii/niidata{}'.format(i+1)
-
-    # 执行归一化操作
-    normalize_all_files(input_folder, output_folder)
+        #执行归一化操作
+        normalize_all_files(input_folder, output_folder)
+    else :
+        continue

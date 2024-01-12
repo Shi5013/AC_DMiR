@@ -23,14 +23,16 @@ if __name__ == "__main__":
     # 指定文件夹路径
 
     for i in range(20):
+        if i != 18:
+            folder_path = '/media/user_gou/Elements/Shi/Reg_Seg/new_data/{}_HM10395/norm_img'.format(100+i)
             
-        folder_path = '/media/user_gou/Elements/Shi/Reg_Seg/new_data/{}_HM10395/lung_label'.format(100+i)
-        
-        # 获取文件列表
-        files = list_files(folder_path)
-        
-        # 指定输出文件路径
-        output_file_path = '/media/user_gou/Elements/Shi/Reg_Seg/file_label/new_list_label.txt'
-        
-        # 将文件路径写入txt文件，按数字大小排序
-        write_to_txt(files, output_file_path)
+            # 获取文件列表
+            files = list_files(folder_path)
+            
+            # 指定输出文件路径
+            output_file_path = '/media/user_gou/Elements/Shi/Reg_Seg/file_label/new_list_norm.txt'
+            
+            # 将文件路径写入txt文件，按数字大小排序
+            write_to_txt(files, output_file_path)
+        else:
+            continue

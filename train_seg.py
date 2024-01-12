@@ -30,7 +30,7 @@ parser.add_argument('-s','--save_folder',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/new_list.txt',
+                    default='./file_label/new_list_norm.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
@@ -47,7 +47,7 @@ args = parser.parse_args()
 device = torch.device("cuda:{}".format(args.gpu_id))
 
 save_prefix = 'model_'
-save_interval = 3  # 每隔10个 epoch 保存一次模型
+save_interval = 10  # 每隔10个 epoch 保存一次模型
 
 model = Seg_net() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
@@ -104,12 +104,19 @@ for epoch in range(args.epochs):
     if (epoch + 1) % save_interval == 0:
 
         mask_save_cpu = mask_save.to('cpu').detach().numpy()
+        seg_label_cpu = seg_label.to('cpu').detach().numpy()
+
         # 将 NumPy 数组的维度重新排列
         mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
+        seg_label_cpu = np.transpose(seg_label_cpu, (0, 3, 4, 2, 1))
+
         # 创建一个 NIfTI 图像对象
         nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
+        nifti_seg_label = nib.Nifti1Image(seg_label_cpu[0, :, :, :, 0], affine=np.eye(4))
+
         # 保存 NIfTI 图像到.nii.gz 文件
         nib.save(nifti_img_mask, 'mask_image{}.nii.gz'.format(epoch+1))
+        nib.save(nifti_seg_label, 'label{}.nii.gz'.format(epoch+1))
 
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"

@@ -10,12 +10,13 @@ from Loss import *
 # from AC_DMiR import *
 from without_cross import *
 from dataset import *
+from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,gpuid...')
 
 parser.add_argument('-lr','--learning_rate',
                     dest='learning_rate',
-                    default=1e-4,
+                    default=2e-5,
                     help='learning rate,default=1e-3')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
@@ -23,7 +24,7 @@ parser.add_argument('-g','--gpu_id',
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=300,
+                    default=30,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
@@ -31,12 +32,16 @@ parser.add_argument('-s','--save_folder',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_list.txt',
+                    default='./file_label/new_list_norm.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label_list.txt',
+                    default='./file_label/new_list_label.txt',
                     help='label list,txt file')
+parser.add_argument('-t','--tensorboard',
+                    dest='tensorboard',
+                    default='logs',
+                    help='tensorboard file')
 
 
 args = parser.parse_args()
@@ -62,6 +67,8 @@ start_time = time.time()
 dataset = fixed_moving_seg(args.file_list,args.label_list)
 data_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=0)
 
+writer = SummaryWriter(args.tensorboard)
+count = 0
 
 for epoch in range(args.epochs):
     # 设置模型为训练模式
@@ -127,13 +134,13 @@ for epoch in range(args.epochs):
         criterion = nn.BCELoss()
         loss_mask = criterion(mask,fixed_seg_label)
         dice_loss_mask = dice_loss(mask,fixed_seg_label)
-        # 加一个dice
-
-#        print("loss moved(total loss):",loss_moved)# 0.2xxxx
-#        print("seg loss: ",0.1*loss_mask) # 0.8xxxx
 
         # loss = 2*loss_moved+0.3*loss_mask+init_dsc_loss+0.1*initial_smooth_loss+100*init_mse_loss+0.1*final_smooth_loss
-        loss = final_moved_loss+init_mse_loss+0.01*dice_loss_mask
+        loss = final_moved_loss+init_mse_loss+dice_loss_mask
+        writer.add_scalar('init_mse_loss',init_mse_loss,count)
+        writer.add_scalar('final_moved_loss',final_moved_loss,count)
+        writer.add_scalar('dice_loss',dice_loss_mask,count)
+        count = count+1
 
         losss = losss + loss.item()
 
@@ -160,11 +167,7 @@ for epoch in range(args.epochs):
 
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
-        
-        # if torch.cuda.device_count() > 1:
-        #     torch.save(model.module.state_dict(), save_path)
-        # else:
-        #     torch.save(model.state_dict(), save_path)
+    
         
         torch.save(model.state_dict(), save_path)
         print(f"Epoch {epoch+1}/{args.epochs}, Loss: {loss.item()}, Model saved as {save_path}")
@@ -174,3 +177,4 @@ for epoch in range(args.epochs):
 
     print(f"Epoch {epoch + 1}/{args.epochs}, Loss: {losss},Time:{epoch_time}")
     start_time = end_time
+writer.close()

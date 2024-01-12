@@ -17,15 +17,15 @@ parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,g
 
 parser.add_argument('-lr','--learning_rate',
                     dest='learning_rate',
-                    default=2e-4,
+                    default=2e-5,
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
-                    default=0,
+                    default=1,
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=300,
+                    default=50,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
@@ -33,7 +33,7 @@ parser.add_argument('-s','--save_folder',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/new_list.txt',
+                    default='./file_label/new_list_norm.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
@@ -52,7 +52,7 @@ model = AC_DMiR() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
 
 save_prefix = 'model_'
-save_interval = 3  # 每隔10个 epoch 保存一次模型
+save_interval = 10  # 每隔10个 epoch 保存一次模型
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 scheduler = StepLR(optimizer, step_size=5, gamma=0.98)  # 每隔5个epoch，将学习率乘以0.9
@@ -62,6 +62,7 @@ spt = SpatialTransformer((96,256,256))
 # loss的一些设定：
 gradient_loss_calculator = Grad(penalty='l1') # 形变场的光滑损失
 mse = nn.MSELoss()
+ncc_loss = NCC()
 
 
 start_time = time.time()
@@ -120,6 +121,8 @@ for epoch in range(args.epochs):
         # 3 initial_moved的MSE损失
         init_mse_loss = mse(initial_moved,fixed_file)
         init_mae_loss = F.l1_loss(initial_moved,fixed_file)
+        
+        # init_moved_ncc_loss = ncc_loss.loss(fixed_file,initial_moved)# ncc loss
 
         # 4 final_field的平滑性损失
         final_smooth_loss= gradient_loss_calculator.loss(None,final_field)
@@ -132,6 +135,8 @@ for epoch in range(args.epochs):
         final_moved_loss = mse(final_moved,fixed_file) # mse
         loss_moved = total_loss(final_moved,fixed_file) # l1 + sobel + ssim
         final_moved_mae_loss = F.l1_loss(final_moved,fixed_file)
+
+        # final_moved_ncc_loss = ncc_loss.loss(fixed_file,final_moved)# ncc loss
 
         # 7 分割网络结果的损失
         criterion = nn.BCELoss()
@@ -147,6 +152,11 @@ for epoch in range(args.epochs):
         writer.add_scalar('init_mse_loss',init_mse_loss,count)
         writer.add_scalar('final_moved_loss',final_moved_loss,count)
         writer.add_scalar('dice_loss',dice_loss_mask,count)
+
+        # loss = init_moved_ncc_loss + final_moved_ncc_loss + dice_loss_mask
+        # writer.add_scalar('init_moved_ncc_loss',init_moved_ncc_loss,count)
+        # writer.add_scalar('final_moved_ncc_loss',final_moved_ncc_loss,count)
+        
         count = count+1
         losss = losss + loss.item()
         writer.add_scalar('loss',losss,epoch)
@@ -160,18 +170,24 @@ for epoch in range(args.epochs):
         moved_save_cpu = moved_save.to('cpu').detach().numpy()
         mask_save_cpu = mask_save.to('cpu').detach().numpy()
         field_save_cpu = field_save.to('cpu').detach().numpy()
+        init_field_save_cpu = initial_field.to('cpu').detach().numpy()
 
         mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
         moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
         field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+        init_field_save_cpu = np.transpose(init_field_save_cpu, (0, 3, 4, 2, 1))
 
         nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
         nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
         nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
+        nifti_img_init_field = nib.Nifti1Image(init_field_save_cpu[0, :, :, :, :], affine=np.eye(4))
+        
         # 保存 NIfTI 图像到.nii.gz 文件
         nib.save(nifti_img_mask, './results/mask_image{}.nii.gz'.format(epoch+1))
         nib.save(nifti_img_moved, './results/moved_image{}.nii.gz'.format(epoch+1))
         nib.save(nifti_img_field, './results/field_image{}.nii.gz'.format(epoch+1))
+        nib.save(nifti_img_init_field, './results/init_field_image{}.nii.gz'.format(epoch+1))
+        
 
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"

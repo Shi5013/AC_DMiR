@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from bottleneck import BottleneckBlock
 
 # 直接是一个Unet结构，不需要交叉注意力的模块
 # 或者换一个思路，我是不是也带上这个交叉注意力模块？
@@ -99,6 +100,9 @@ class Seg_net(nn.Module):
             padding=0,# padding=1 还是会改变输入图像的大小的
             bias=False)
 
+        self.bottleneck = BottleneckBlock(32,32,32)
+
+
         self.ConvBlock4 = nn.Sequential(
             # 第一层：
             nn.Conv3d(in_channels=64,
@@ -176,11 +180,11 @@ class Seg_net(nn.Module):
         Init_moved_3      = self.ConvBlock3(Init_moved_2_pool) # 1, 32, 16, 64, 64->1, 32, 16, 64, 64
         Init_moved_3_pool = self.MaxPooling3(Init_moved_3) # 1, 32, 16, 64, 64 -> 1, 32, 8, 32, 32
        
-        # 输出，bottleneck
-        out_for_bottleneck = Init_moved_3_pool
+        # 经过bottleneck
+        after_bottleneck = self.bottleneck(Init_moved_3_pool)
 
         # 下面进行解码过程，目的是为了得到分割的图像，也就是label
-        seg_input = Init_moved_3_pool # (1, 32, 8, 32, 32)
+        seg_input = after_bottleneck # (1, 32, 8, 32, 32)
         seg_input = self.relu_after_cross(seg_input)
         # 这里要进行一个反卷积
         seg_decoder1 = self.decoder1(seg_input) # (1, 32, 8, 32, 32) -> (1, 32, 16, 64, 64)
@@ -204,7 +208,7 @@ class Seg_net(nn.Module):
         # seg_mask = (Seg_output >= 0.5).float()
         seg_mask = Seg_output
         
-        return seg_mask,out_for_bottleneck
+        return seg_mask,after_bottleneck
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels):
         super(ResidualBlock, self).__init__()
@@ -227,7 +231,7 @@ class ResidualBlock(nn.Module):
 
 """
 # Test:
-Init_moved = torch.randn(16,32,32)
+Init_moved = torch.randn(96,224,224)
 Init_moved = Init_moved.unsqueeze(0).unsqueeze(0)
 
 model = Seg_net()
@@ -238,6 +242,6 @@ print(output[0].size())
 print(output[1].size())
 
 # =============输出===========
-# torch.Size([1, 1, 16, 32, 32])
-# torch.Size([1, 32, 2, 4, 4])
+torch.Size([1, 1, 96, 224, 224])
+torch.Size([1, 32, 12, 28, 28])
 """

@@ -20,11 +20,11 @@ parser.add_argument('-lr','--learning_rate',
                     help='learning rate,default=1e-3')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
-                    default=0,
+                    default=1,
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=30,
+                    default=32,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
@@ -51,7 +51,7 @@ model = AC_DMiR_without_cross_attention() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
 
 save_prefix = 'model_'
-save_interval = 10  # 每隔10个 epoch 保存一次模型
+save_interval = 6  # 每隔10个 epoch 保存一次模型
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -134,6 +134,9 @@ for epoch in range(args.epochs):
         criterion = nn.BCELoss()
         loss_mask = criterion(mask,fixed_seg_label)
         dice_loss_mask = dice_loss(mask,fixed_seg_label)
+
+        final_moved_loss = 3000*final_moved_loss
+        init_mse_loss = 2000*init_mse_loss
 
         # loss = 2*loss_moved+0.3*loss_mask+init_dsc_loss+0.1*initial_smooth_loss+100*init_mse_loss+0.1*final_smooth_loss
         loss = final_moved_loss+init_mse_loss+dice_loss_mask

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from Cross_attention import NLBlockND_cross
 
 class CTAB(nn.Module):
-    def __init__(self, in_channel=1):
+    def __init__(self, in_channel=32):
         super(CTAB, self).__init__()
 
         self.model = NLBlockND_cross(in_channel)

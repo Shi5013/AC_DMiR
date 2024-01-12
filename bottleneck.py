@@ -6,6 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 class BottleneckBlock(nn.Module):
     def __init__(self, in_channels, out_channels, num_classes, stride=1):
+
+        #  这里的num——class是不对的。bottle不改变通道数。
+
         super(BottleneckBlock, self).__init__()
 
         # First 3x3x3 convolution

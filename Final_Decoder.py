@@ -8,12 +8,12 @@ from Cross_attention import *
 # 直接是一个Unet结构，不需要交叉注意力的模块
 # 或者换一个思路，我是不是也带上这个交叉注意力模块？
 class FinalDecoder(nn.Module):
-    def __init__(self,in_channel=1):
+    def __init__(self,in_channel=32):
         super(FinalDecoder, self).__init__()
         self.decoder1 = nn.Sequential(
             # deconvolution:
             # voxelmorph里面用的是上采样最近邻插值，我们用哪一个？先用转置卷积
-            nn.ConvTranspose3d(in_channels=1, 
+            nn.ConvTranspose3d(in_channels=in_channel, 
                                out_channels=32, 
                                kernel_size=4, # kernel_size=2的话padding=0
                                stride=2, 

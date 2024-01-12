@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from bottleneck import *
 
 # 目前的这个配准里面没有交叉注意力
 # 主体的通道数是16
@@ -57,6 +58,9 @@ class Reg_network(nn.Module):
             stride=(1, 1, 1),
             padding=0,# padding=1 还是会改变输入图像的大小的
             bias=False)
+
+        # bottleneck
+        self.bottleneck = BottleneckBlock(32,32,32)
 
         self.ConvBlock4 = nn.Sequential(
             # 第一层：
@@ -161,8 +165,12 @@ class Reg_network(nn.Module):
         instead = torch.cat((a,b),1) # (1,32,8,32,32)
         instead = self.insteadbn(instead) # (1,32,8,32,32)
 
-        # 这个结果拿出来，去进行bottleneck
-        out_for_bottleneck = instead# 这是一个32通道的，后面要弄成1通道
+        # # 这个结果拿出来，去进行bottleneck
+        # out_for_bottleneck = instead# 这是一个32通道的，后面要弄成1通道
+
+        # 修改一下，不是把这个结果拿出来去bottleneck，而是直接在这里bottleneck
+        instead = self.bottleneck(instead)
+        after_bottleneck = instead
 
 
         cat1 = torch.cat((fixed_1,moving_1),1)# ((1,32,64,256,256),(1,32,64,256,256))->(1,64,64,256,256)
@@ -199,12 +207,12 @@ class Reg_network(nn.Module):
         
         Deformable_Field = self.Final_Conv(final_conv_input)# (1,64,64,256,256)->(1,3,64,256,256)
         
-        return Deformable_Field,out_for_bottleneck
+        return Deformable_Field,after_bottleneck
     
 """
 # Test:
-fixed = torch.randn(16,32,32)
-moving = torch.randn(16,32,32)
+fixed = torch.randn(96,224,224)
+moving = torch.randn(96,224,224)
 
 fixed = fixed.unsqueeze(0).unsqueeze(0)
 moving = moving.unsqueeze(0).unsqueeze(0)
@@ -219,6 +227,6 @@ print(output[0].size())
 print(output[1].size())
 
 # =================输出===================
-# torch.Size([1, 3, 16, 32, 32])
-# torch.Size([1, 32, 2, 4, 4])
+torch.Size([1, 3, 96, 224, 224])
+torch.Size([1, 32, 12, 28, 28])
 """

@@ -22,7 +22,9 @@ class AC_DMiR(nn.Module):
         
         # Supervised egmentation Learning
         self.Init_Seg = Seg_net() # return Seg_output,out_for_bottleneck
-        self.bottleneck = BottleneckBlock(32,32,1)
+
+        # self.bottleneck = BottleneckBlock(32,32,1)
+
         self.cross = CTAB() # return W_Q
         self.finaldecoder = FinalDecoder() # return x (1,1,96,256,256)
 
@@ -34,13 +36,14 @@ class AC_DMiR(nn.Module):
         init_field = output1[0]
         reg_bottleneck = output1[1]
 
-        reg_bottleneck = self.bottleneck(reg_bottleneck)
+        # reg_bottleneck = self.bottleneck(reg_bottleneck)
+
         Init_moved = self.spt(moving,init_field)
         output2 = self.Init_Seg(Init_moved)
         mask = output2[0]
         seg_bottleneck = output2[1]
 
-        seg_bottleneck = self.bottleneck(seg_bottleneck)
+        # seg_bottleneck = self.bottleneck(seg_bottleneck)
 
         cross_task_attention = self.cross(reg_bottleneck,seg_bottleneck)
         final_field = self.finaldecoder(cross_task_attention)
@@ -48,10 +51,10 @@ class AC_DMiR(nn.Module):
         return mask,final_moved,final_field,Init_moved,init_field
 
 """
-# Tesk:
+# Test:
 device = torch.device("cuda:0")
-fixed = torch.randn(96,256,256)
-moving = torch.randn(96,256,256)
+fixed = torch.randn(16,32,32)
+moving = torch.randn(16,32,32)
 fixed = fixed.to(device)
 moving = moving.to(device)
 fixed = fixed.unsqueeze(0).unsqueeze(0)
@@ -71,8 +74,11 @@ model = AC_DMiR()
 model.to(device)
 output = model(x)
 print("==========")
-# print(output[0].size())
-# print(output[1].size())
+print(output[0].size())
+print(output[1].size())
+print(output[2].size())
+print(output[3].size())
+print(output[4].size())
 # ==========
 # torch.Size([1, 1, 96, 256, 256])
 # torch.Size([1, 1, 96, 256, 256])

@@ -26,7 +26,7 @@ parser.add_argument('-g','--gpu_id',
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=31,
+                    default=30,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
@@ -165,42 +165,20 @@ for epoch in range(args.epochs):
         writer.add_scalar('loss',losss,epoch)
 
         loss.backward()
+        # print(scheduler.get_lr())
 
         optimizer.step()
-        scheduler.step()
+    scheduler.step()
     if (epoch + 1) % save_interval == 0:
 
+        # 这里的保存回头可以写成一行，对于output的保存，不用重复写这么多
         save_nii(fixed_file,"./results/fixed_file{}".format(epoch),0)
         save_nii(moving_file,"./results/moving_file{}".format(epoch),0)
-
         save_nii(mask_save,"./results/mask_save{}".format(epoch),0)
         save_nii(final_moved,"./results/final_moved{}".format(epoch),0)
         save_nii(final_field,"./results/final_field{}".format(epoch),1)
         save_nii(initial_moved,"./results/init_moved{}".format(epoch),0)
         save_nii(initial_field,"./results/init_field{}".format(epoch),1)
-
-        # moved_save_cpu = moved_save.to('cpu').detach().numpy()
-        # mask_save_cpu = mask_save.to('cpu').detach().numpy()
-        # field_save_cpu = field_save.to('cpu').detach().numpy()
-        # init_field_save_cpu = initial_field.to('cpu').detach().numpy()
-
-        # mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
-        # moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
-        # field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
-        # init_field_save_cpu = np.transpose(init_field_save_cpu, (0, 3, 4, 2, 1))
-
-        # nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
-        # nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        # nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        # nifti_img_init_field = nib.Nifti1Image(init_field_save_cpu[0, :, :, :, :], affine=np.eye(4))
-        
-        # # 保存 NIfTI 图像到.nii.gz 文件
-        # nib.save(nifti_img_mask, './results/mask_image{}.nii.gz'.format(epoch+1))
-        # nib.save(nifti_img_moved, './results/moved_image{}.nii.gz'.format(epoch+1))
-        # nib.save(nifti_img_field, './results/field_image{}.nii.gz'.format(epoch+1))
-        # nib.save(nifti_img_init_field, './results/init_field_image{}.nii.gz'.format(epoch+1))
-        
-
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
         torch.save(model.state_dict(), save_path)

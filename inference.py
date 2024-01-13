@@ -4,10 +4,13 @@ import nibabel as nib
 from AC_DMiR import AC_DMiR
 from train import *
 
-def save_nii(x,name):
+def save_nii(x,name,field):
     x = x.to('cpu').detach().numpy()
     x = np.transpose(x, (0, 3, 4, 2, 1))
-    nifti_img = nib.Nifti1Image(x[0, :, :, :, 0],affine=np.eye(4))
+    if field == 0:
+        nifti_img = nib.Nifti1Image(x[0, :, :, :, 0],affine=np.eye(4))
+    else:
+        nifti_img = nib.Nifti1Image(x[0, :, :, :, :],affine=np.eye(4))
     nib.save(nifti_img,'./inference_results/{}.nii.gz'.format(name))
     print(f"{name} saved")
 
@@ -20,7 +23,7 @@ def read_data(file_path):
     file = file.to(device)
     return file
 
-
+print("begin")
 # 创建模型实例
 model2 = AC_DMiR()
 device = torch.device("cuda:1")
@@ -28,7 +31,7 @@ model2 = model2.to(device)
 
 # 加载数据
 fixed_path = './new_data/100_HM10395/norm_img/norm_resampled_100_HM10395_07-02-2003-NA-p4-14571_0.0A-423.1_image.nii.gz'
-moving_path = './new_data/100_HM10395/norm_img/norm_resampled_100_HM10395_07-02-2003-NA-p4-14571_10.0A-423.2_image.nii.gz'
+moving_path = './new_data/100_HM10395/norm_img/norm_resampled_100_HM10395_07-02-2003-NA-p4-14571_20.0A-423.3_image.nii.gz'
 fixed_file = read_data(fixed_path)
 moving_file = read_data(moving_path)
 input_data = torch.cat((fixed_file,moving_file),1)
@@ -54,9 +57,9 @@ with torch.no_grad():
     init_moved = output[3]
     init_field = output[4]
 
-    save_nii(mask_save,"mask_save")
-    save_nii(final_moved,"final_moved")
-    save_nii(final_field,"final_field")
-    save_nii(init_moved,"init_moved")
-    save_nii(init_field,"init_field")
+    save_nii(mask_save,"mask_save2",0)
+    save_nii(final_moved,"final_moved2",0)
+    save_nii(final_field,"final_field2",1)
+    save_nii(init_moved,"init_moved2",0)
+    save_nii(init_field,"init_field2",1)
 

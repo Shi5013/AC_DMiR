@@ -11,6 +11,8 @@ from Loss import *
 from without_cross import *
 from dataset import *
 from torch.utils.tensorboard import SummaryWriter
+from save_nii_result import *
+
 
 parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,gpuid...')
 
@@ -28,7 +30,7 @@ parser.add_argument('-e','--epochs',
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./nocross/',
+                    default='./models_save_nocross/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
@@ -40,7 +42,7 @@ parser.add_argument('-ll','--label_list',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',
-                    default='logs',
+                    default='logs_nocross',
                     help='tensorboard file')
 
 
@@ -51,7 +53,7 @@ model = AC_DMiR_without_cross_attention() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
 
 save_prefix = 'model_'
-save_interval = 6  # 每隔10个 epoch 保存一次模型
+save_interval = 5  # 每隔10个 epoch 保存一次模型
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -152,21 +154,30 @@ for epoch in range(args.epochs):
         optimizer.step()
     if (epoch + 1) % save_interval == 0:
 
-        moved_save_cpu = moved_save.to('cpu').detach().numpy()
-        mask_save_cpu = mask_save.to('cpu').detach().numpy()
-        field_save_cpu = field_save.to('cpu').detach().numpy()
+        save_nii(fixed_file,"./results_noatt/fixed_file{}".format(epoch),0)
+        save_nii(moving_file,"./results_noatt/moving_file{}".format(epoch),0)
 
-        mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
-        moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
-        field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+        save_nii(mask_save,"./results_noatt/mask_save{}".format(epoch),0)
+        save_nii(final_moved,"./results_noatt/final_moved{}".format(epoch),0)
+        save_nii(final_field,"./results_noatt/final_field{}".format(epoch),1)
+        save_nii(initial_moved,"./results_noatt/init_moved{}".format(epoch),0)
+        save_nii(initial_field,"./results_noatt/init_field{}".format(epoch),1)
 
-        nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
-        nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        # 保存 NIfTI 图像到.nii.gz 文件
-        nib.save(nifti_img_mask, './results_noatt/mask_image{}.nii.gz'.format(epoch+1))
-        nib.save(nifti_img_moved, './results_noatt/moved_image{}.nii.gz'.format(epoch+1))
-        nib.save(nifti_img_field, './results_noatt/field_image{}.nii.gz'.format(epoch+1))
+        # moved_save_cpu = moved_save.to('cpu').detach().numpy()
+        # mask_save_cpu = mask_save.to('cpu').detach().numpy()
+        # field_save_cpu = field_save.to('cpu').detach().numpy()
+
+        # mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
+        # moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+        # field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+
+        # nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
+        # nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
+        # nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
+        # # 保存 NIfTI 图像到.nii.gz 文件
+        # nib.save(nifti_img_mask, './results_noatt/mask_image{}.nii.gz'.format(epoch+1))
+        # nib.save(nifti_img_moved, './results_noatt/moved_image{}.nii.gz'.format(epoch+1))
+        # nib.save(nifti_img_field, './results_noatt/field_image{}.nii.gz'.format(epoch+1))
 
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"

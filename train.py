@@ -12,6 +12,7 @@ from SPT import *
 from Loss import *
 from AC_DMiR import *
 from dataset import *
+from save_nii_result import *
 
 parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,gpuid...')
 
@@ -21,11 +22,11 @@ parser.add_argument('-lr','--learning_rate',
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
-                    default=1,
+                    default=0,
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
-                    default=50,
+                    default=31,
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
@@ -52,7 +53,7 @@ model = AC_DMiR() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
 
 save_prefix = 'model_'
-save_interval = 10  # 每隔10个 epoch 保存一次模型
+save_interval = 5  # 每隔10个 epoch 保存一次模型
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 scheduler = StepLR(optimizer, step_size=5, gamma=0.98)  # 每隔5个epoch，将学习率乘以0.9
@@ -148,6 +149,8 @@ for epoch in range(args.epochs):
         # writer.add_scalar('final_moved_mae_loss',final_moved_mae_loss,count)
         # writer.add_scalar('dice_loss_mask',dice_loss_mask,count)
 
+        final_moved_loss = 3000*final_moved_loss
+        init_mse_loss = 2000*init_mse_loss
         loss = init_mse_loss + final_moved_loss + dice_loss_mask
         writer.add_scalar('init_mse_loss',init_mse_loss,count)
         writer.add_scalar('final_moved_loss',final_moved_loss,count)
@@ -167,26 +170,35 @@ for epoch in range(args.epochs):
         scheduler.step()
     if (epoch + 1) % save_interval == 0:
 
-        moved_save_cpu = moved_save.to('cpu').detach().numpy()
-        mask_save_cpu = mask_save.to('cpu').detach().numpy()
-        field_save_cpu = field_save.to('cpu').detach().numpy()
-        init_field_save_cpu = initial_field.to('cpu').detach().numpy()
+        save_nii(fixed_file,"./results/fixed_file{}".format(epoch),0)
+        save_nii(moving_file,"./results/moving_file{}".format(epoch),0)
 
-        mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
-        moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
-        field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
-        init_field_save_cpu = np.transpose(init_field_save_cpu, (0, 3, 4, 2, 1))
+        save_nii(mask_save,"./results/mask_save{}".format(epoch),0)
+        save_nii(final_moved,"./results/final_moved{}".format(epoch),0)
+        save_nii(final_field,"./results/final_field{}".format(epoch),1)
+        save_nii(initial_moved,"./results/init_moved{}".format(epoch),0)
+        save_nii(initial_field,"./results/init_field{}".format(epoch),1)
 
-        nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
-        nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
-        nifti_img_init_field = nib.Nifti1Image(init_field_save_cpu[0, :, :, :, :], affine=np.eye(4))
+        # moved_save_cpu = moved_save.to('cpu').detach().numpy()
+        # mask_save_cpu = mask_save.to('cpu').detach().numpy()
+        # field_save_cpu = field_save.to('cpu').detach().numpy()
+        # init_field_save_cpu = initial_field.to('cpu').detach().numpy()
+
+        # mask_save_cpu = np.transpose(mask_save_cpu, (0, 3, 4, 2, 1))
+        # moved_save_cpu = np.transpose(moved_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+        # field_save_cpu = np.transpose(field_save_cpu, (0, 3, 4, 2, 1))  # 从 (1, 1, 96, 256, 256) 变为 (1, 256, 256, 96, 1)
+        # init_field_save_cpu = np.transpose(init_field_save_cpu, (0, 3, 4, 2, 1))
+
+        # nifti_img_mask = nib.Nifti1Image(mask_save_cpu[0, :, :, :, 0], affine=np.eye(4))
+        # nifti_img_moved = nib.Nifti1Image(moved_save_cpu[0, :, :, :, 0], affine=np.eye(4))  # 取第一个样本并去掉单维度
+        # nifti_img_field = nib.Nifti1Image(field_save_cpu[0, :, :, :, :], affine=np.eye(4))  # 取第一个样本并去掉单维度
+        # nifti_img_init_field = nib.Nifti1Image(init_field_save_cpu[0, :, :, :, :], affine=np.eye(4))
         
-        # 保存 NIfTI 图像到.nii.gz 文件
-        nib.save(nifti_img_mask, './results/mask_image{}.nii.gz'.format(epoch+1))
-        nib.save(nifti_img_moved, './results/moved_image{}.nii.gz'.format(epoch+1))
-        nib.save(nifti_img_field, './results/field_image{}.nii.gz'.format(epoch+1))
-        nib.save(nifti_img_init_field, './results/init_field_image{}.nii.gz'.format(epoch+1))
+        # # 保存 NIfTI 图像到.nii.gz 文件
+        # nib.save(nifti_img_mask, './results/mask_image{}.nii.gz'.format(epoch+1))
+        # nib.save(nifti_img_moved, './results/moved_image{}.nii.gz'.format(epoch+1))
+        # nib.save(nifti_img_field, './results/field_image{}.nii.gz'.format(epoch+1))
+        # nib.save(nifti_img_init_field, './results/init_field_image{}.nii.gz'.format(epoch+1))
         
 
         # 构建保存路径，包含有关模型和训练的信息

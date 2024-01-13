@@ -56,7 +56,7 @@ save_prefix = 'model_'
 save_interval = 5  # 每隔10个 epoch 保存一次模型
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-scheduler = StepLR(optimizer, step_size=5, gamma=0.98)  # 每隔5个epoch，将学习率乘以0.9
+scheduler = StepLR(optimizer, step_size=5, gamma=0.9)  # 每隔5个epoch，将学习率乘以0.9
 
 spt = SpatialTransformer((96,256,256))
 

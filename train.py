@@ -27,22 +27,27 @@ parser.add_argument('-g','--gpu_id',
 parser.add_argument('-e','--epochs',
                     dest='epochs',
                     default=30,
-                    help='epochs,default=300')
+                    help='epochs,default=30')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./models_save/',
+                    default='./Liver_4DCT_models/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/new_list_norm.txt',
+                    default='./file_label/Liver_4DCT_file.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label/new_list_label.txt',
+                    # default='./file_label/Liver_4DCT_file_label_lung.txt',
+                    default='./file_label/Liver_4DCT_file_label_liver.txt',
+                    help='label list,txt file')
+parser.add_argument('-gt','--ground_truth_list',
+                    dest='gt_list',
+                    default='./file_label/Liver_4DCT_ground_truth.txt',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',
-                    default='logs',
+                    default='Liver_4DCT_logs',
                     help='tensorboard file')
 
 
@@ -68,7 +73,7 @@ ncc_loss = NCC()
 
 start_time = time.time()
 
-dataset = fixed_moving_seg(args.file_list,args.label_list)
+dataset = fixed_moving_seg(args.file_list,args.label_list,args.gt_list)
 data_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=0)
 
 writer = SummaryWriter(args.tensorboard)
@@ -94,7 +99,10 @@ for epoch in range(args.epochs):
         fixed_seg_label = fixed_seg_label.to(device)
         # moving mask
         moving_seg_label = batch['moving_mask']
-        moving_seg_label = moving_seg_label.to(device)        
+        moving_seg_label = moving_seg_label.to(device)  
+        # ground_truth
+        ground_truth = batch['ground_truth'] 
+        ground_truth = ground_truth.to(device)     
         # input
         input_data = torch.cat((fixed_file,moving_file),1)
 
@@ -120,7 +128,8 @@ for epoch in range(args.epochs):
         init_dsc_loss = dice_loss(init_dsc_temp,fixed_seg_label)
 
         # 3 initial_moved的MSE损失
-        init_mse_loss = mse(initial_moved,fixed_file)
+        # init_mse_loss = mse(initial_moved,fixed_file)
+        init_mse_loss = mse(initial_moved,ground_truth)
         init_mae_loss = F.l1_loss(initial_moved,fixed_file)
         
         # init_moved_ncc_loss = ncc_loss.loss(fixed_file,initial_moved)# ncc loss
@@ -133,7 +142,8 @@ for epoch in range(args.epochs):
         final_dsc_loss = dice_loss(final_dsc_temp,fixed_seg_label)
 
         # 6 final_moved的损失
-        final_moved_loss = mse(final_moved,fixed_file) # mse
+        # final_moved_loss = mse(final_moved,fixed_file) # mse
+        final_moved_loss = mse(final_moved,ground_truth)
         loss_moved = total_loss(final_moved,fixed_file) # l1 + sobel + ssim
         final_moved_mae_loss = F.l1_loss(final_moved,fixed_file)
 
@@ -172,13 +182,13 @@ for epoch in range(args.epochs):
     if (epoch + 1) % save_interval == 0:
 
         # 这里的保存回头可以写成一行，对于output的保存，不用重复写这么多
-        save_nii(fixed_file,"./results/fixed_file{}".format(epoch),0)
-        save_nii(moving_file,"./results/moving_file{}".format(epoch),0)
-        save_nii(mask_save,"./results/mask_save{}".format(epoch),0)
-        save_nii(final_moved,"./results/final_moved{}".format(epoch),0)
-        save_nii(final_field,"./results/final_field{}".format(epoch),1)
-        save_nii(initial_moved,"./results/init_moved{}".format(epoch),0)
-        save_nii(initial_field,"./results/init_field{}".format(epoch),1)
+        save_nii(fixed_file,"./Liver_4DCT_results/fixed_file{}".format(epoch),0)
+        save_nii(moving_file,"./Liver_4DCT_results/moving_file{}".format(epoch),0)
+        save_nii(mask_save,"./Liver_4DCT_results/mask_save{}".format(epoch),0)
+        save_nii(final_moved,"./Liver_4DCT_results/final_moved{}".format(epoch),0)
+        save_nii(final_field,"./Liver_4DCT_results/final_field{}".format(epoch),1)
+        save_nii(initial_moved,"./Liver_4DCT_results/init_moved{}".format(epoch),0)
+        save_nii(initial_field,"./Liver_4DCT_results/init_field{}".format(epoch),1)
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
         torch.save(model.state_dict(), save_path)

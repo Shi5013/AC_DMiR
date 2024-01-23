@@ -1,13 +1,3 @@
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_Ex20%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_Ex40%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_Ex60%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_Ex80%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_Ex100%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_In20%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_In40%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_In60%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_In80%_label_liver.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient1/10_CCE_4823203_In100%_label_liver.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient2/11_DMH_4165169_Ex20%_label_liver.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient2/11_DMH_4165169_Ex40%_label_liver.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient2/11_DMH_4165169_Ex60%_label_liver.nii.gz

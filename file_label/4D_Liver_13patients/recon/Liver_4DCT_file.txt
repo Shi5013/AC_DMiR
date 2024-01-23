@@ -1,13 +1,3 @@
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_01_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_02_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_03_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_04_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_05_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_06_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_07_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_08_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_09_01_01.nii.gz
-/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_10_01_01.nii.gz
 /media/user_gou/Elements/Shi/recon/recon_image_resample/patient2/02_01_01_01.nii.gz
 /media/user_gou/Elements/Shi/recon/recon_image_resample/patient2/02_02_01_01.nii.gz
 /media/user_gou/Elements/Shi/recon/recon_image_resample/patient2/02_03_01_01.nii.gz

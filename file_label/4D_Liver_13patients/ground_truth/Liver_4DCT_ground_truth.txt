@@ -1,13 +1,3 @@
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex20%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex40%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex60%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex80%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex100%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_In20%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_In40%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_In60%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_In80%/image.nii.gz
-/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_In100%/image.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/11_DMH_4165169_Ex20%/image.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/11_DMH_4165169_Ex40%/image.nii.gz
 /media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/11_DMH_4165169_Ex60%/image.nii.gz

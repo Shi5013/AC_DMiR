@@ -30,19 +30,23 @@ parser.add_argument('-e','--epochs',
                     help='epochs,default=300')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./models_save_nocross/',
+                    default='./save_models/Reg_Seg_Without_attention/4D_Liver_13_patients_recon',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/new_list_norm.txt',
+                    default='./file_label/4D_Liver_13patients/recon/Liver_4DCT_file.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
-                    default='./file_label/new_list_label.txt',
+                    default='./file_label/4D_Liver_13patients/recon/Liver_4DCT_file_label_liver.txt',
+                    help='label list,txt file')
+parser.add_argument('-gt','--ground_truth_list',
+                    dest='gt_list',
+                    default='./file_label/4D_Liver_13patients/ground_truth/Liver_4DCT_ground_truth.txt',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',
-                    default='logs_nocross',
+                    default='./save_logs/Reg_Seg_Without_attention/4D_Liver_13_patients_recon',
                     help='tensorboard file')
 
 
@@ -66,7 +70,7 @@ mse = nn.MSELoss()
 
 start_time = time.time()
 
-dataset = fixed_moving_seg(args.file_list,args.label_list)
+dataset = fixed_moving_seg(args.file_list,args.label_list,args.gt_list)
 data_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=0)
 
 writer = SummaryWriter(args.tensorboard)
@@ -154,14 +158,14 @@ for epoch in range(args.epochs):
         optimizer.step()
     if (epoch + 1) % save_interval == 0:
 
-        save_nii(fixed_file,"./results_noatt/fixed_file{}".format(epoch),0)
-        save_nii(moving_file,"./results_noatt/moving_file{}".format(epoch),0)
+        save_nii(fixed_file,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/fixed_file{}".format(epoch+1),0)
+        save_nii(moving_file,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/moving_file{}".format(epoch+1),0)
 
-        save_nii(mask_save,"./results_noatt/mask_save{}".format(epoch),0)
-        save_nii(final_moved,"./results_noatt/final_moved{}".format(epoch),0)
-        save_nii(final_field,"./results_noatt/final_field{}".format(epoch),1)
-        save_nii(initial_moved,"./results_noatt/init_moved{}".format(epoch),0)
-        save_nii(initial_field,"./results_noatt/init_field{}".format(epoch),1)
+        save_nii(mask_save,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/mask_save{}".format(epoch+1),0)
+        save_nii(final_moved,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/final_moved{}".format(epoch+1),0)
+        save_nii(final_field,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/final_field{}".format(epoch+1),1)
+        save_nii(initial_moved,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/init_moved{}".format(epoch+1),0)
+        save_nii(initial_field,"./save_results/Reg_Seg_Without_attention/4D_Liver_13_patients_recon/init_field{}".format(epoch+1),1)
 
         # moved_save_cpu = moved_save.to('cpu').detach().numpy()
         # mask_save_cpu = mask_save.to('cpu').detach().numpy()

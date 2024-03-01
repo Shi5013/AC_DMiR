@@ -1,10 +1,14 @@
+"""
+这是不带交叉注意力的版本
+"""
+
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from bottleneck import *
 
-# 目前的这个配准里面没有交叉注意力
-# 主体的通道数是16
 class Reg_network(nn.Module):
     def __init__(self):
         super(Reg_network, self).__init__()
@@ -155,7 +159,6 @@ class Reg_network(nn.Module):
         moving_2_pool = self.MaxPooling2(moving_2)
         moving_3      = self.ConvBlock3(moving_2_pool)
         moving_3_pool = self.MaxPooling3(moving_3)
-
         
         # 这一块用来替代cross attention，减少内存开销
         instead1 = torch.cat((fixed_3_pool,moving_3_pool),1)
@@ -165,13 +168,8 @@ class Reg_network(nn.Module):
         instead = torch.cat((a,b),1) # (1,32,8,32,32)
         instead = self.insteadbn(instead) # (1,32,8,32,32)
 
-        # # 这个结果拿出来，去进行bottleneck
-        # out_for_bottleneck = instead# 这是一个32通道的，后面要弄成1通道
-
-        # 修改一下，不是把这个结果拿出来去bottleneck，而是直接在这里bottleneck
         instead = self.bottleneck(instead)
         after_bottleneck = instead
-
 
         cat1 = torch.cat((fixed_1,moving_1),1)# ((1,32,64,256,256),(1,32,64,256,256))->(1,64,64,256,256)
         cat1 = self.Conv_size1_for_cat(cat1) # (1,64,64,256,256)->(1,32,64,256,256)
@@ -208,7 +206,8 @@ class Reg_network(nn.Module):
         Deformable_Field = self.Final_Conv(final_conv_input)# (1,64,64,256,256)->(1,3,64,256,256)
         
         return Deformable_Field,after_bottleneck
-    
+
+
 """
 # Test:
 fixed = torch.randn(96,224,224)

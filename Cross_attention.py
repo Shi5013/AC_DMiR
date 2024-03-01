@@ -141,13 +141,12 @@ class NLBlockND_cross(nn.Module):
         z = W_y + x_thisBranch 
 
         return z
-
 """
-python Test.py
-    input1:
-    torch.Size([1, 4, 8, 16, 16])
-    input2:
-    torch.Size([1, 4, 8, 16, 16])
-    output:
-    torch.Size([1, 4, 8, 16, 16])
+Test:
+
+tensor1 = torch.Tensor(1,2,16,32,32)
+tensor2 = torch.Tensor(1,2,16,32,32)
+cross_attention = NLBlockND_cross(2)
+result = cross_attention(tensor1,tensor2)
+print(result.size())
 """

@@ -1,11 +1,16 @@
+"""
+这是带交叉注意力的版本
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from Cross_attention import NLBlockND_cross
 
-
-class Reg_network(nn.Module):
+# cross_attention = NLBlockND_cross(in_channels=32)
+class Reg_network_with_attention(nn.Module):
     def __init__(self):
-        super(Reg_network, self).__init__()
+        super(Reg_network_with_attention, self).__init__()
         
         # 一个完整的block块：
         self.ConvBlock1 = nn.Sequential(
@@ -123,14 +128,16 @@ class Reg_network(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        self.insteadofcross = nn.Conv3d(in_channels=64,
-                                        out_channels=16,
+        self.cross_attention = NLBlockND_cross(in_channels=32)
+        self.bn_after_cross_attention = nn.BatchNorm3d(32)
+        self.relu_after_cross_attention = nn.ReLU()
+        self.change_channel = nn.Conv3d(in_channels=64,
+                                        out_channels=32,
                                         kernel_size=3,
                                         stride=1,
                                         padding=1,
                                         bias=False)
-        self.insteadbn = nn.BatchNorm3d(32)
-        self.instead_relu = nn.ReLU(inplace=True)
+
     def forward(self, x):
         # 这一步操作是将x的两个通道的数据分别取出来，x是一个5D的数据:(N,C,T,H,W)
 
@@ -151,18 +158,12 @@ class Reg_network(nn.Module):
         moving_3      = self.ConvBlock3(moving_2_pool)
         moving_3_pool = self.MaxPooling3(moving_3)
 
-        
-        # 这一块用来替代cross attention，减少内存开销
-        instead1 = torch.cat((fixed_3_pool,moving_3_pool),1)
-        instead2 = torch.cat((moving_3_pool,fixed_3_pool),1)
-        a = self.insteadofcross(instead1)# (1,32,8,32,32)->(1,16,8,32,32)
-        b = self.insteadofcross(instead2)# (1,32,8,32,32)->(1,16,8,32,32)
-        instead = torch.cat((a,b),1) # (1,32,8,32,32)
-        instead = self.insteadbn(instead) # (1,32,8,32,32)
-
-        # 这个结果拿出来，去进行bottleneck
-        out_for_bottleneck = instead# 这是一个32通道的，后面要弄成1通道
-
+        result_of_cross_attention_1 = self.cross_attention(fixed_3_pool,moving_3_pool)
+        result_of_cross_attention_2 = self.cross_attention(moving_3_pool,fixed_3_pool)
+        result_of_cross_attention  = torch.cat((result_of_cross_attention_1,result_of_cross_attention_2),1)
+        result_of_cross_attention = self.change_channel(result_of_cross_attention)
+        result_of_cross_attention = self.bn_after_cross_attention(result_of_cross_attention)
+        out_for_bottleneck = result_of_cross_attention
 
         cat1 = torch.cat((fixed_1,moving_1),1)# ((1,32,64,256,256),(1,32,64,256,256))->(1,64,64,256,256)
         cat1 = self.Conv_size1_for_cat(cat1) # (1,64,64,256,256)->(1,32,64,256,256)
@@ -176,8 +177,8 @@ class Reg_network(nn.Module):
         cat3 = self.Conv_size1_for_cat(cat3) # 1, 64, 16, 64, 64 -> 1, 32, 16, 64, 64
         cat_for_deformable3 = cat3
 
-        reg_input = instead # (1, 32, 8, 32, 32)
-        reg_input = self.instead_relu(reg_input)
+        reg_input = result_of_cross_attention # (1, 32, 8, 32, 32)
+        reg_input = self.relu_after_cross_attention(reg_input)
         
         # 第一次反卷积
         reg_decoder1 = self.decoder1(reg_input) # (1, 32, 8, 32, 32) -> (1, 32, 16, 64, 64)

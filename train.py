@@ -1,6 +1,7 @@
 import os
 import time
 import torch
+import warnings
 import argparse
 import numpy as np
 import torch.nn as nn
@@ -14,6 +15,7 @@ from AC_DMiR import *
 from dataset import *
 from save_nii_result import *
 
+warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser(description='set hyperparemeters : lr,epoches,gpuid...')
 
 parser.add_argument('-lr','--learning_rate',
@@ -30,11 +32,11 @@ parser.add_argument('-e','--epochs',
                     help='epochs,default=30')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./result_without_seg/models/',
+                    default='./result_withseg/models/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
-                    default='./file_label/4D_Liver_13patients/recon/Liver_4DCT_file_his_regis.txt',
+                    default='./file_label/4D_Liver_13patients/recon/Liver_4DCT_file.txt',
                     help='file list,txt file.include fixed and moving')
 parser.add_argument('-ll','--label_list',
                     dest='label_list',
@@ -47,7 +49,7 @@ parser.add_argument('-gt','--ground_truth_list',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',
-                    default='./result_without_seg/logs',
+                    default='./result_withseg/logs',
                     help='tensorboard file')
 
 
@@ -58,7 +60,7 @@ model = AC_DMiR() # 输入是fixed和moving的堆叠
 model = model.to(device) # model -> GPU
 
 save_prefix = 'model_'
-save_interval = 5  # 每隔10个 epoch 保存一次模型
+save_interval = 5  
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 scheduler = StepLR(optimizer, step_size=5, gamma=0.9)  # 每隔5个epoch，将学习率乘以0.9
@@ -183,13 +185,13 @@ for epoch in range(args.epochs):
 
         # 这里的保存回头可以写成一行，对于output的保存，不用重复写这么多
         # save_results/Reg_Seg_With_attention/4D_Liver_13_patients_recon
-        save_nii(fixed_file,"./result_after_his_regis/results/fixed_file{}".format(epoch+1),0)
-        save_nii(moving_file,"./result_after_his_regis/results/moving_file{}".format(epoch+1),0)
-        save_nii(mask_save,"./result_after_his_regis/results/mask_save{}".format(epoch+1),0)
-        save_nii(final_moved,"./result_after_his_regis/results/final_moved{}".format(epoch+1),0)
-        save_nii(final_field,"./result_after_his_regis/results/final_field{}".format(epoch+1),1)
-        save_nii(initial_moved,"./result_after_his_regis/results/init_moved{}".format(epoch+1),0)
-        save_nii(initial_field,"./result_after_his_regis/results/init_field{}".format(epoch+1),1)
+        save_nii(fixed_file,"./result_withseg/results/fixed_file{}".format(epoch+1),0)
+        save_nii(moving_file,"./result_withseg/results/moving_file{}".format(epoch+1),0)
+        save_nii(mask_save,"./result_withseg/results/mask_save{}".format(epoch+1),0)
+        save_nii(final_moved,"./result_withseg/results/final_moved{}".format(epoch+1),0)
+        save_nii(final_field,"./result_withseg/results/final_field{}".format(epoch+1),1)
+        save_nii(initial_moved,"./result_withseg/results/init_moved{}".format(epoch+1),0)
+        save_nii(initial_field,"./result_withseg/results/init_field{}".format(epoch+1),1)
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
         torch.save(model.state_dict(), save_path)

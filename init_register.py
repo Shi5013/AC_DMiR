@@ -23,7 +23,7 @@ parser.add_argument('-lr','--learning_rate',
                     help='learning rate,default=1e-4')
 parser.add_argument('-g','--gpu_id',
                     dest='gpu_id',
-                    default=1,
+                    default=0,
                     help='choose gpu,default=0')
 parser.add_argument('-e','--epochs',
                     dest='epochs',
@@ -31,7 +31,7 @@ parser.add_argument('-e','--epochs',
                     help='epochs,default=30')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./result_with_cross_attention/models/',
+                    default='./result_withseg/models/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
@@ -48,7 +48,7 @@ parser.add_argument('-gt','--ground_truth_list',
                     help='label list,txt file')
 parser.add_argument('-t','--tensorboard',
                     dest='tensorboard',
-                    default='./result_with_cross_attention/logs/',
+                    default='./result_withseg/logs/',
                     help='tensorboard file')
 args = parser.parse_args()
 
@@ -88,7 +88,14 @@ for epoch in range(args.epochs):
         moving_file = moving_file.to(device)
         # ground_truth
         ground_truth = batch['ground_truth'] 
-        ground_truth = ground_truth.to(device)     
+        ground_truth = ground_truth.to(device)
+        # fixed seg
+        fixed_mask = batch['fixed_mask']
+        fixed_mask = fixed_mask.to(device)
+        # moving seg
+        moving_mask = batch['moving_mask']
+        moving_mask = moving_mask.to(device)    
+
         # input
         input_data = torch.cat((fixed_file,moving_file),1)
         # 将梯度归零
@@ -97,14 +104,19 @@ for epoch in range(args.epochs):
         output = model(input_data) # return mask,final_moved
         initial_field = output[0]
         initial_moved = spt(moving_file,initial_field)
+        initial_moved_mask = spt(moving_mask,initial_field)
+
         #initial_moved的MSE损失
         # init_mse_loss = mse(initial_moved,ground_truth)
         init_mse_loss = mse(initial_moved,fixed_file)
+        init_mask_mse_loss = mse(initial_moved_mask,fixed_mask)
+
         # init_mae_loss = F.l1_loss(initial_moved,fixed_file)
         # init_mae_loss = F.l1_loss(initial_moved,ground_truth)
         writer.add_scalar('init_mse_loss',init_mse_loss,count)
+        writer.add_scalar('init_mask_mse_loss',init_mask_mse_loss,count)
 
-        loss = init_mse_loss
+        loss = init_mse_loss+init_mask_mse_loss
         count = count+1
         losss = losss + loss.item()
         loss.backward()
@@ -113,10 +125,10 @@ for epoch in range(args.epochs):
     scheduler.step()
     if (epoch + 1) % save_interval == 0:
 
-        save_nii(fixed_file,"./result_with_cross_attention/results/fixed_file{}".format(epoch+1),0)
-        save_nii(moving_file,"./result_with_cross_attention/results/moving_file{}".format(epoch+1),0)
-        save_nii(initial_moved,"./result_with_cross_attention/results/init_moved{}".format(epoch+1),0)
-        save_nii(initial_field,"./result_with_cross_attention/results/init_field{}".format(epoch+1),1)
+        # save_nii(fixed_file,"./result_withseg/results/fixed_file{}".format(epoch+1),0)
+        # save_nii(moving_file,"./result_withseg/results/moving_file{}".format(epoch+1),0)
+        save_nii(initial_moved,"./result_withseg/results/init_moved{}".format(epoch+1),0)
+        save_nii(initial_field,"./result_withseg/results/init_field{}".format(epoch+1),1)
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
         torch.save(model.state_dict(), save_path)

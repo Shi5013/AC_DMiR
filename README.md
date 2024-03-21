@@ -26,3 +26,12 @@ return {
 ```
 ### without_cross.py
 里面有个AC_DMiR_without_cross_attention类，是去掉交叉注意力的模型
+
+
+# 新学期修改
+优化了初始配准部分
+1. 首先是`network_reg.py`.这是不带交叉注意力的初始配准，和voxelmorph的原理一致，运行的模型以及中间结果保存在 `/media/user_gou/Elements/Shi/Reg_Seg/result_without_cross_attention`文件夹
+
+
+2. 在`network_reg.py`的基础上加入交叉注意力，得到`network_reg_with_cross_attention.py`。运行的模型以及中间结果保存在 `/media/user_gou/Elements/Shi/Reg_Seg/result_with_cross_attention`文件夹
+

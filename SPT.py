@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import nibabel as nib
+import numpy as np
 import torch.nn.functional as nnf
 
 class SpatialTransformer(nn.Module):
@@ -52,13 +54,36 @@ class SpatialTransformer(nn.Module):
 
 # 这个SPT的核心就是nnf.grid_sample() , 难点就是张量维度的变换
 
-# size = (16,32,32)
-# trans = SpatialTransformer(size)
 
-# srcimg = torch.randn(1,1,16,16,32)
-# flow_field = torch.randn(1,3,16,32,32)
+"""
+def read_data(file_path):
+    file = nib.load(file_path)
+    file = file.get_fdata()
+    file = np.transpose(file, (2, 0, 1))
+    file = torch.from_numpy(file).float()
+    file = file.unsqueeze(0).unsqueeze(0)
+    file = file.to(device)
+    return file
+def save_nii(x,name,field):
+    x = x.to('cpu').detach().numpy()
+    x = np.transpose(x, (0, 3, 4, 2, 1))
+    if field == 0:
+        nifti_img = nib.Nifti1Image(x[0, :, :, :, 0],affine=np.eye(4))
+    else:
+        nifti_img = nib.Nifti1Image(x[0, :, :, :, :],affine=np.eye(4))
+    nib.save(nifti_img,'./{}.nii.gz'.format(name))
+    print(f"{name} saved")
 
-# result = trans(srcimg,flow_field)
-# print(result.size())
 
-# 可以，最终还是跑通了。输出的结果会和scrimg的维度一样。
+device = torch.device("cuda:0")
+
+flow_field = torch.randn(1,3,96,256,256)
+flow_field = flow_field.to(device)
+
+seg_path = '/media/user_gou/Elements/Shi/recon/Liver_4DCT_label100slice_resample_liver/patient2/11_DMH_4165169_Ex20%_label_liver.nii.gz'
+seg_file = read_data(seg_path)
+spt = SpatialTransformer((96,256,256))
+result = spt(seg_file,flow_field)
+save_nii(result,"seg_spt_test",0)
+"""
+

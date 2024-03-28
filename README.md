@@ -35,3 +35,8 @@ return {
 
 2. 在`network_reg.py`的基础上加入交叉注意力，得到`network_reg_with_cross_attention.py`。运行的模型以及中间结果保存在 `/media/user_gou/Elements/Shi/Reg_Seg/result_with_cross_attention`文件夹
 
+## 实验记录 3/21组会
+### results1
+`python train.py`
+`model = AC_DMiR()`
+前面的配准网络和分割网络并没有带cross attention，而是在bottleneck拿出来后才进行的cross attention，然后输入到后面的网络。

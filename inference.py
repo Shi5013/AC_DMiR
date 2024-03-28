@@ -34,14 +34,14 @@ def read_data(file_path):
     return file
 
 # 创建模型实例
+# model2 = AC_DMiR()
 model2 = Reg_network_with_attention()
-# model2 = Reg_network_with_attention()
-device = torch.device("cuda:0")
+device = torch.device("cuda:1")
 model2 = model2.to(device)
 
 # 加载数据
 fixed_path = '/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_01_01_01.nii.gz'
-moving_path = '/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_03_01_01.nii.gz'
+moving_path = '/media/user_gou/Elements/Shi/recon/recon_image_resample/patient1/01_04_01_01.nii.gz'
 # ground_truth = '/media/user_gou/Elements/Shi/recon/Liver_4DCT_nii100slice/10_CCE_4823203_Ex20%/image.nii.gz'
 fixed_file = read_data(fixed_path)
 moving_file = read_data(moving_path)
@@ -50,7 +50,7 @@ input_data = torch.cat((fixed_file,moving_file),1)
 
 
 # 加载保存的.pth文件
-checkpoint_path = './result_without_cross_attention/models/model_epoch15.pth'  
+checkpoint_path = './result_dice2/models/model_epoch15.pth'  
 checkpoint = torch.load(checkpoint_path, map_location=device)
 model2.load_state_dict(checkpoint)
 

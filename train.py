@@ -32,7 +32,7 @@ parser.add_argument('-e','--epochs',
                     help='epochs,default=30')
 parser.add_argument('-s','--save_folder',
                     dest='save_folder',
-                    default='./result_withseg/models/',
+                    default='./result1/models/',
                     help='where models saves')
 parser.add_argument('-fl','--file_list',
                     dest='file_list',
@@ -130,8 +130,8 @@ for epoch in range(args.epochs):
         init_dsc_loss = dice_loss(init_dsc_temp,fixed_seg_label)
 
         # 3 initial_moved的MSE损失
-        # init_mse_loss = mse(initial_moved,fixed_file)
-        init_mse_loss = mse(initial_moved,ground_truth)
+        init_mse_loss = mse(initial_moved,fixed_file)
+        # init_mse_loss = mse(initial_moved,ground_truth)
         init_mae_loss = F.l1_loss(initial_moved,fixed_file)
         
         # init_moved_ncc_loss = ncc_loss.loss(fixed_file,initial_moved)# ncc loss
@@ -144,8 +144,8 @@ for epoch in range(args.epochs):
         final_dsc_loss = dice_loss(final_dsc_temp,fixed_seg_label)
 
         # 6 final_moved的损失
-        # final_moved_loss = mse(final_moved,fixed_file) # mse
-        final_moved_loss = mse(final_moved,ground_truth)
+        final_moved_loss = mse(final_moved,fixed_file) # mse
+        # final_moved_loss = mse(final_moved,ground_truth)
         loss_moved = total_loss(final_moved,fixed_file) # l1 + sobel + ssim
         final_moved_mae_loss = F.l1_loss(final_moved,fixed_file)
 
@@ -185,13 +185,13 @@ for epoch in range(args.epochs):
 
         # 这里的保存回头可以写成一行，对于output的保存，不用重复写这么多
         # save_results/Reg_Seg_With_attention/4D_Liver_13_patients_recon
-        save_nii(fixed_file,"./result_withseg/results/fixed_file{}".format(epoch+1),0)
-        save_nii(moving_file,"./result_withseg/results/moving_file{}".format(epoch+1),0)
-        save_nii(mask_save,"./result_withseg/results/mask_save{}".format(epoch+1),0)
-        save_nii(final_moved,"./result_withseg/results/final_moved{}".format(epoch+1),0)
-        save_nii(final_field,"./result_withseg/results/final_field{}".format(epoch+1),1)
-        save_nii(initial_moved,"./result_withseg/results/init_moved{}".format(epoch+1),0)
-        save_nii(initial_field,"./result_withseg/results/init_field{}".format(epoch+1),1)
+        save_nii(fixed_file,"./result1/results/fixed_file{}".format(epoch+1),0)
+        save_nii(moving_file,"./result1/results/moving_file{}".format(epoch+1),0)
+        save_nii(mask_save,"./result1/results/mask_save{}".format(epoch+1),0)
+        save_nii(final_moved,"./result1/results/final_moved{}".format(epoch+1),0)
+        save_nii(final_field,"./result1/results/final_field{}".format(epoch+1),1)
+        save_nii(initial_moved,"./result1/results/init_moved{}".format(epoch+1),0)
+        save_nii(initial_field,"./result1/results/init_field{}".format(epoch+1),1)
         # 构建保存路径，包含有关模型和训练的信息
         save_path = f"{args.save_folder}{save_prefix}epoch{epoch+1}.pth"
         torch.save(model.state_dict(), save_path)
